@@ -2,7 +2,7 @@
 abstract class PagesOverview
 {
     abstract function getSearchInput():string;
-    abstract function SearchMatch(Library $library, $searchInput): array;
+    abstract function SearchMatch($searchInput): array;
 
     public function getPages(array $searchMatches): array
     {
@@ -61,11 +61,18 @@ class PartialBookSearch extends PagesOverview
 
 class Genre extends PagesOverview
 {
+    /** @var Book[] */
+    private $books = [];
     private string $genre;
 
     public function __construct(string $genre)
     {
         $this->genre = strtolower($genre);
+    }
+
+    public function addBook(Book $book)
+    {
+        $this->books[] = $book;
     }
 
     public function getSearchInput():string
@@ -82,11 +89,14 @@ class Genre extends PagesOverview
         $genres = array_unique($genres);
         return $genres;
     }
-    public function SearchMatch(Library $library, $searchInput): array
+
+    public function SearchMatch(Library $library): array
     {
+        // return $genre->getBooks();
+
         $searchMatches = [];
         foreach ($library->getBooks() as $book) {
-            if (stripos(strtolower($book->getGenre()), strtolower($searchInput) )!== false) {
+            if (stripos(strtolower($book->getGenre()), strtolower($this->getSearchInput()) )!== false) {
                 $searchMatches[] = $book;
             }
         }
@@ -119,16 +129,15 @@ class Publisher extends PagesOverview
         $publishers = array_unique($publishers);
         return $publishers;
     }
-    public function SearchMatch(Library $library, $searchInput): array
+    public function SearchMatch(Library $library): array
     {
         $searchMatches = [];
         foreach ($library->getBooks() as $book) {
-            if (stripos(strtolower($book->getPublisher()), strtolower($searchInput) )!== false) {
+            if (stripos(strtolower($book->getPublisher()), strtolower($this->getSearchInput()) )!== false) {
                 $searchMatches[] = $book;
             }
         }
         return $searchMatches;
-
     }
 }
 

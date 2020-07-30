@@ -126,6 +126,11 @@ class OpenState extends state{
     {
         $this->context->transitionTo(new SoldState());
     }
+
+    public function validTransactions() : array
+    {
+        return [LendedState::class, SoldState::class];
+    }
 }
 class LendedState extends State{
 
@@ -144,7 +149,10 @@ class LendedState extends State{
         $this->context->transitionTo(new OvertimeState());
     }
 
-
+    public function validTransactions() : array
+    {
+        return [OpenState::class, LostState::class, OvertimeState::class];
+    }
 }
 class OvertimeState extends State {
     public function open(): void

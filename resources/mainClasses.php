@@ -3,10 +3,17 @@
 class Library
 {
     protected array $books = [];
+    protected array $genres = [];
 
-    public function setBooks(array $books): void
+    public function __construct(array $books, array $genres)
     {
         $this->books = $books;
+        $this->genres = $genres;
+    }
+
+    public function getGenres(): array
+    {
+        return $this->genres;
     }
 
     public function getBooks(): array
@@ -14,8 +21,8 @@ class Library
         return $this->books;
     }
 
-    public static function searchBook(Library $library,string $title):Book{
-        foreach ($library->getBooks() as $book){
+    public function searchBook(string $title):Book{
+        foreach ($this->getBooks() as $book){
             if($title===$book->getTitle()){
                 return $book;
             }
@@ -33,6 +40,20 @@ class Library
                       <p><strong>Genre: </strong>{$match->getGenre()}</p>
                       <p><strong>Publisher: </strong>{$match->getPublisher()}</p>
                        <p><strong>Status: </strong>{$status}</p>";
+
+            /* will work if all states have a validTransations() method
+            foreach ($match->getContext()->getState()->validTransactions() as $item) {
+                switch($item) {
+                    case LendedState::class:
+                        $display.= '<a href=\'?title=$title&state=lended\'>rent it out</a>';
+                        break;
+                    case OpenState::class:
+                        $display.= '<a href=\'?title=$title&state=open\'>book is returned</a>';
+                        break;
+                }
+            }
+            */
+
             switch ($status){
                 case 'LendedState':
                     $display.= " 
@@ -56,6 +77,7 @@ class Library
         return $completeDisplay;
     }
 
+    // SOLID
 
 }
 
@@ -63,12 +85,12 @@ class Book
 {
     private string $title;
     private string $author;
-    private string $genre;
+    private Genre $genre;
     private int $pages;
     private string $publisher;
     private Context $context;
 
-    public function __construct(string $title, string $author, string $genre, int $pages, string $publisher, State $state)
+    public function __construct(string $title, string $author, Genre $genre, int $pages, string $publisher, State $state)
     {
         $this->title = $title;
         $this->author = $author;
@@ -76,6 +98,8 @@ class Book
         $this->pages = $pages;
         $this->publisher = $publisher;
         $this->context=new Context($state);
+
+        $this->genre->addBook($this);
     }
 
     public function getTitle(): string

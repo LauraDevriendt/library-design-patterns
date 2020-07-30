@@ -12,14 +12,23 @@ require 'resources/Patterns/stateLibraryFlow.php';
 session_start();
 
 /* OUTPUT FROM FACTORY FORMAT */
-$books = clientCode(new BookImporterCsv('resources/books.csv'));
+try {
+    $importer = new BookImporterCsv('resources/books.csv');
+    $importer->convertData();
+}
+catch (BooksNotImportedException $e) {
+    die($e->getMessage());
+}
+catch(Exception $e) {
+    die('Something really bad happend');
+}
 
 /* Establishing Library */
 if(isset($_SESSION['library'])){
+    /** @var Library $library */
     $library=$_SESSION['library'];
 }else{
-    $library = new Library();
-    $library->setBooks($books);
+    $library = new Library($importer->getData(), $importer->getGenres());
     $_SESSION['library']=$library;
 }
 /* CONCERNING COMPOSITE */
@@ -37,14 +46,14 @@ case isset($_POST['publisher'])&& $_POST['publisher']!=='':
     $searchInput = new Publisher($_POST['publisher']);
 
 }
-if($_SERVER['REQUEST_METHOD']=='POST'){
+if(isset($searchInput) && $searchInput instanceof PagesOverview){
 
     $searchMatches = $searchInput->SearchMatch($library, $searchInput->getSearchInput());
 }
 
 /* OUTPUT FROM state FORMAT */
 if(isset($_GET['state'])){
-    $book = Library::searchBook($library,$_GET['title']);
+    $book = $library->searchBook($_GET['title']);
     $context= $book->getContext();
     switch ($_GET['state']){
         case 'lended':
@@ -61,7 +70,7 @@ if(isset($_GET['state'])){
             break;
 
     }
-    $book->setContext($context);
+//    $book->setContext($context);//I am sure you can remove this
 
 }
 
@@ -101,7 +110,7 @@ if(isset($_GET['state'])){
                 <select name="genre" id="genre">
                     <option value=""><?php if(isset($_POST['genre'])) echo "chose: {$_POST['genre']}"; ?></option>
                     <?php
-                    foreach (Genre::getGenres($library) as $genre) {
+                    foreach ($library->getGenres() as $genre) {
                         echo " <option value='$genre'>$genre</option>";
                     }
                     ?>
