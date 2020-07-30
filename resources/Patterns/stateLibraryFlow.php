@@ -47,6 +47,10 @@ class Context
     {
         $this->state->borrow();
     }
+    public function overtime(): void
+    {
+        $this->state->overtime();
+    }
     public function buy(): void
     {
         $this->state->buy();
@@ -134,11 +138,12 @@ class LendedState extends State{
     {
         $this->context->transitionTo(new LostState());
     }
-
     public function overtime(): void
     {
+
         $this->context->transitionTo(new OvertimeState());
     }
+
 
 }
 class OvertimeState extends State {
