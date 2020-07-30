@@ -14,7 +14,7 @@ session_start();
 /* OUTPUT FROM FACTORY FORMAT */
 try {
     $importer = new BookImporterCsv('resources/books.csv');
-    $importer->convertData();
+
 }
 catch (BooksNotImportedException $e) {
     die($e->getMessage());
@@ -28,9 +28,11 @@ if(isset($_SESSION['library'])){
     /** @var Library $library */
     $library=$_SESSION['library'];
 }else{
-    $library = new Library($importer->getData(), $importer->getGenres());
+    $library = new Library($importer->getBooks(), $importer->getGenres(),$importer->getPublishers());
     $_SESSION['library']=$library;
 }
+
+
 /* CONCERNING COMPOSITE */
 switch(isset($_POST))
 {
@@ -46,12 +48,17 @@ case isset($_POST['publisher'])&& $_POST['publisher']!=='':
     $searchInput = new Publisher($_POST['publisher']);
 
 }
+
 if(isset($searchInput) && $searchInput instanceof PagesOverview){
 
-    $searchMatches = $searchInput->SearchMatch($library, $searchInput->getSearchInput());
+    $searchMatches = $searchInput->searchMatch($library);
+
+
 }
 
+
 /* OUTPUT FROM state FORMAT */
+
 if(isset($_GET['state'])){
     $book = $library->searchBook($_GET['title']);
     $context= $book->getContext();
@@ -70,7 +77,7 @@ if(isset($_GET['state'])){
             break;
 
     }
-//    $book->setContext($context);//I am sure you can remove this
+
 
 }
 
@@ -91,7 +98,7 @@ if(isset($_GET['state'])){
 <body>
 <h1 class="text-center my-2">Library</h1>
 <section id="searchArea" class="container my-4">
-    <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) ?>">
+    <form method="post">
         <label for="bookSearch" class="mr-2"><strong>Fill in (part of) title:</strong></label>
         <div class="input-group">
             <input type="text" class="form-control" id="bookSearch" name="bookSearchInput"
@@ -104,14 +111,14 @@ if(isset($_GET['state'])){
         </div>
     </form>
     <div class="mt-2 d-flex justify-content-between">
-        <form method="post" class="" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) ?>">
+        <form method="post" class="">
             <label for="genre" class=""><strong>Pick Genre:</strong></label>
             <div class="input-group">
                 <select name="genre" id="genre">
                     <option value=""><?php if(isset($_POST['genre'])) echo "chose: {$_POST['genre']}"; ?></option>
                     <?php
                     foreach ($library->getGenres() as $genre) {
-                        echo " <option value='$genre'>$genre</option>";
+                        echo " <option value='{$genre->getGenre()}'>{$genre->getGenre()}</option>";
                     }
                     ?>
                 </select>
@@ -120,14 +127,14 @@ if(isset($_GET['state'])){
                 </div>
             </div>
         </form>
-        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) ?>">
+        <form method="post">
             <label for="genre" class=""><strong>Pick Publisher:</strong></label>
             <div class="input-group">
                 <select name="publisher" id="publisher">
                     <option value=""><?php if(isset($_POST['publisher'])) echo "chose: {$_POST['publisher']}"; ?></option>
                     <?php
-                    foreach (Publisher::getPublishers($library) as $publisher) {
-                        echo " <option value='$publisher'>$publisher</option>";
+                    foreach ($library->getPublishers() as $publisher) {
+                        echo " <option value='{$publisher->getPublisher()}'>{$publisher->getPublisher()}</option>";
                     }
                     ?>
                 </select>
@@ -139,11 +146,11 @@ if(isset($_GET['state'])){
     </div>
 </section>
 <section id="pagesinfo" class="container">
-    <?php if ($_SERVER['REQUEST_METHOD']=='POST') echo "<h2 class='my-3'>Total pages for this search: {$searchInput->totalPages($searchInput,$searchMatches)}</h2>"; ?>
+    <?php if (isset($searchInput)) echo "<h2 class='my-3'>Total pages for this search: {$searchInput->totalPages($searchInput,$searchMatches)}</h2>"; ?>
 </section>
 <section id="inventory" class="container text-center">
     <div class="row ml-2">
-        <?php if ($_SERVER['REQUEST_METHOD']=='POST') echo $library->displayBooks($searchMatches);?>
+        <?php if (isset($searchInput)) echo $library->displayBooks($searchMatches);?>
     </div>
 </section>
 </body>

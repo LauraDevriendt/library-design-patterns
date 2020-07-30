@@ -2,7 +2,7 @@
 abstract class PagesOverview
 {
     abstract function getSearchInput():string;
-    abstract function SearchMatch($searchInput): array;
+    abstract function searchMatch(Library $library): array;
 
     public function getPages(array $searchMatches): array
     {
@@ -30,12 +30,16 @@ abstract class PagesOverview
     }
 
 
+
 }
 
 class PartialBookSearch extends PagesOverview
 {
     private string $searchInput;
-
+    /**
+     * @var Book[]
+     */
+    private array $books;
     public function __construct(string $searchInput)
     {
         $this->searchInput = strtolower($searchInput);
@@ -46,11 +50,16 @@ class PartialBookSearch extends PagesOverview
         return $this->searchInput;
     }
 
-    public function SearchMatch(Library $library, $searchInput): array
+     public function addBook(Book $book)
+    {
+        $this->books[] = $book;
+    }
+
+    public function searchMatch(Library $library): array
     {
         $searchMatches = [];
         foreach ($library->getBooks() as $book) {
-            if (stripos(strtolower($book->getTitle()), strtolower($searchInput) )!== false) {
+            if (stripos(strtolower($book->getTitle()), strtolower($this->searchInput) )!== false) {
                 $searchMatches[] = $book;
             }
         }
@@ -80,35 +89,40 @@ class Genre extends PagesOverview
         return $this->genre;
     }
 
-    public static function getGenres(Library $library)
+    public function getGenre(): string
     {
-        $genres = [];
-        foreach ($library->getBooks() as $book) {
-            $genres[] = $book->getGenre();
-        }
-        $genres = array_unique($genres);
-        return $genres;
+        return $this->genre;
     }
 
-    public function SearchMatch(Library $library): array
+    public function searchMatch(Library $library): array
     {
-        // return $genre->getBooks();
 
         $searchMatches = [];
         foreach ($library->getBooks() as $book) {
-            if (stripos(strtolower($book->getGenre()), strtolower($this->getSearchInput()) )!== false) {
+
+            if (stripos(strtolower($book->getGenre()->getGenre()), strtolower($this->getSearchInput()) )!== false) {
                 $searchMatches[] = $book;
             }
         }
         return $searchMatches;
-
     }
 }
 
 class Publisher extends PagesOverview
 {
+    /** @var Book[] */
+    private $books = [];
     private string $publisher;
 
+    public function getPublisher(): string
+    {
+        return $this->publisher;
+    }
+
+    public function addBook(Book $book)
+    {
+        $this->books[] = $book;
+    }
 
     public function __construct(string $publisher)
     {
@@ -120,20 +134,11 @@ class Publisher extends PagesOverview
         return $this->publisher;
     }
 
-    public static function getPublishers(Library $library)
-    {
-        $publishers = [];
-        foreach ($library->getBooks() as $book) {
-            $publishers[] = $book->getPublisher();
-        }
-        $publishers = array_unique($publishers);
-        return $publishers;
-    }
-    public function SearchMatch(Library $library): array
+    public function searchMatch(Library $library): array
     {
         $searchMatches = [];
         foreach ($library->getBooks() as $book) {
-            if (stripos(strtolower($book->getPublisher()), strtolower($this->getSearchInput()) )!== false) {
+            if (stripos(strtolower($book->getPublisher()->getPublisher()), strtolower($this->getSearchInput()) )!== false) {
                 $searchMatches[] = $book;
             }
         }

@@ -2,38 +2,22 @@
 
 class BooksNotImportedException extends Exception {}
 
-abstract class BookImporter
-{
-    const FORMAT = "JSON"; // @TODO NODIG???
-
-    abstract public function convertData(): array;
-
-    public function getData(): array
-    {
-        // Call the factory method to create a Product object...
-        return $this->convertData();
 
 
-    }
-
-
-}
-
-class BookImporterCsv extends BookImporter
+class BookImporterCsv
 {
     private string $path;
     /** @var Book[]  */
     private array $books = [];
     /** @var Genre[]  */
     private array $genres = [];
+    /** @var Publisher[]  */
+    private array $publishers = [];
 
     public function __construct(string $path)
     {
         $this->path = $path;
-    }
 
-    public function convertData(): array //merge it with constructor
-    {
         $bookData = [];
         if (($handle = fopen($this->path, "r")) === FALSE) {
             throw new BooksNotImportedException('Could not read books');
@@ -59,17 +43,19 @@ class BookImporterCsv extends BookImporter
             if(!isset($this->genres[$book['genre']])) {
                 $this->genres[$book['genre']] = new Genre($book['genre']);
             }
+            if(!isset($this->publishers[$book['publisher']])) {
+                $this->publishers[$book['publisher']] = new Publisher($book['publisher']);
+            }
 
             $this->books[] = new Book(
                 $book['title'],
                 $book['author'],
                 $this->genres[$book['genre']],
                 (int)$book['pages'],
-                $book['publisher'],
-                new OpenState()
+                $this->publishers[$book['publisher']]
             );
         }
-        return $this->books;
+
     }
 
     /**
@@ -87,9 +73,17 @@ class BookImporterCsv extends BookImporter
     {
         return $this->books;
     }
+
+    /**
+     * @return Publisher[]
+     */
+    public function getPublishers(): array
+    {
+        return $this->publishers;
+    }
 }
 
-class BookImporterJson extends BookImporter
+class BookImporterJson
 {
     private string $path;
     private array $books = [];
@@ -107,18 +101,11 @@ class BookImporterJson extends BookImporter
 
         $bookData = json_decode(file_get_contents($this->path, true), true, 512, JSON_THROW_ON_ERROR);
         foreach ($bookData as $book) {
-            $this->books[] = new Book($book['title'], $book['author'], $book['genre'], (int)$book['pages'], $book['publisher'], new OpenState());
+            $this->books[] = new Book($book['title'], $book['author'], new Genre($book['genre']), (int)$book['pages'], new Publisher($book['publisher']));
         }
 
         return $this->books;
     }
 
-
-}
-
-function clientCode(BookImporter $creator): array
-{
-
-    return $creator->getData();
 
 }

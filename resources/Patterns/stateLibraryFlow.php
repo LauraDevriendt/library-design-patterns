@@ -68,6 +68,9 @@ abstract class State
 
     protected $context;
 
+    abstract function validTransactions() : array;
+
+
     public function getContext(): Context
     {
         return $this->context;
@@ -164,10 +167,21 @@ class OvertimeState extends State {
     {
         $this->context->transitionTo(new LostState());
     }
+
+    public function validTransactions() : array
+    {
+        return [OpenState::class, LostState::class];
+    }
 }
 class LostState extends State {
-
+    public function validTransactions() : array
+    {
+        return [LostState::class];
+    }
 }
 class SoldState extends State{
-
+    public function validTransactions() : array
+    {
+        return [SoldState::class];
+    }
 }
