@@ -2,11 +2,7 @@
 
 class BooksNotImportedException extends Exception {}
 
-
-
-class BookImporterCsv
-{
-    private string $path;
+class BookImporter{
     /** @var Book[]  */
     private array $books = [];
     /** @var Genre[]  */
@@ -14,31 +10,7 @@ class BookImporterCsv
     /** @var Publisher[]  */
     private array $publishers = [];
 
-    public function __construct(string $path)
-    {
-        $this->path = $path;
-
-        $bookData = [];
-        if (($handle = fopen($this->path, "r")) === FALSE) {
-            throw new BooksNotImportedException('Could not read books');
-        }
-
-        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-            if (!isset($first)) {
-                $first = false;
-                continue;
-            }
-
-            [$title, $author, $genre, $pages, $publisher] = $data;
-            $bookData[] = [
-                'title' => $title,
-                'author' => $author,
-                'genre' => $genre,
-                'pages' => $pages,
-                'publisher' => $publisher,
-            ];
-        }
-        fclose($handle);
+    public function createBooks($bookData){
         foreach ($bookData as $book) {
             if(!isset($this->genres[$book['genre']])) {
                 $this->genres[$book['genre']] = new Genre($book['genre']);
@@ -55,7 +27,6 @@ class BookImporterCsv
                 $this->publishers[$book['publisher']]
             );
         }
-
     }
 
     /**
@@ -83,28 +54,58 @@ class BookImporterCsv
     }
 }
 
-class BookImporterJson
+class BookImporterCsv extends BookImporter
 {
     private string $path;
-    private array $books = [];
+
+    public function __construct(string $path)
+    {
+        $this->path = $path;
+
+        $bookData = [];
+        if (($handle = fopen($this->path, "r")) === FALSE) {
+            throw new BooksNotImportedException('Could not read books');
+        }
+
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            if (!isset($first)) {
+                $first = false;
+                continue;
+            }
+
+            [$title, $author, $genre, $pages, $publisher] = $data;
+            $bookData[] = [
+                'title' => $title,
+                'author' => $author,
+                'genre' => $genre,
+                'pages' => $pages,
+                'publisher' => $publisher,
+            ];
+        }
+        fclose($handle);
+        $this->createBooks($bookData);
+
+    }
+
+
+}
+
+class BookImporterJson extends BookImporter
+{
+    private string $path;
+
 
     public function __construct($path)
     {
         $this->path = $path;
-    }
 
-    public function convertData(): array
-    {
         if(!is_file($this->path)) {
             throw new BooksNotImportedException('Could not read json books');
         }
 
         $bookData = json_decode(file_get_contents($this->path, true), true, 512, JSON_THROW_ON_ERROR);
-        foreach ($bookData as $book) {
-            $this->books[] = new Book($book['title'], $book['author'], new Genre($book['genre']), (int)$book['pages'], new Publisher($book['publisher']));
-        }
+        $this->createBooks($bookData);
 
-        return $this->books;
     }
 
 

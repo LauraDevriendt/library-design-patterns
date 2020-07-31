@@ -25,6 +25,9 @@ class Library
     }
 
 
+    /**
+     * @return Book[]
+     */
     public function getBooks(): array
     {
         return $this->books;
@@ -53,47 +56,33 @@ class Library
                       <p><strong>Publisher: </strong>{$match->getPublisher()->getPublisher()}</p>
                        <p><strong>Status: </strong>{$status}</p>";
 
-
-            foreach ($match->getContext()->getState()->validTransactions() as $item) {
-                switch ($item) {
-                    case LendedState::class:
-                        $display .= "<a href='?title=$title&state=lended'>Borrow</a>";
-                        break;
-                    case OpenState::class:
-                        $display .= "<a href='?title=$title&state=open'>Return</a>";
-                        break;
-                    case SoldState::class:
-                        $display .= "<a href='?title=$title&state=sold'>Buy</a>";
-                        break;
-                    case LostState::class:
-                        $display .= "<a href='?title=$title&state=lost'>Lost it</a>";
-                        break;
+            if ($match->getContext()->getState()->isVisible()) {
+                foreach ($match->getContext()->getState()->validTransactions() as $item) {
+                    switch ($item) {
+                        case LendedState::class:
+                            $display .= "<a href='?title=$title&state=lended'>Borrow</a>";
+                            break;
+                        case OpenState::class:
+                            $display .= "<a href='?title=$title&state=open'>Return</a>";
+                            break;
+                        case SoldState::class:
+                            $display .= "<a href='?title=$title&state=sold'>Buy</a>";
+                            break;
+                        case LostState::class:
+                            $display .= "<a href='?title=$title&state=lost'>Lost it</a>";
+                            break;
+                    }
                 }
+
+                $completeDisplay .= $display . "</div>";
             }
 
-           /* switch ($status) {
-                case 'LendedState':
-                    $display .= "
-                      <a href='?title=$title&state=lost'>I Lost it</a>
-                      <a href='?title=$title&state=open'>Return Book</a>
-                      </div>";
-                    break;
-                case 'OpenState':
-                    $display .= "
-                      <a href='?title=$title&state=lended'>Borrow</a>
-                      <a href='?title=$title&state=sold'>buy it</a>
-                      </div>";
-                    break;
-                case 'LostState' || 'SoldState':
-                    $display = "";
-                    break;
-            }*/
-            $completeDisplay .= $display."</div>";
+
+
 
         }
         return $completeDisplay;
     }
-
 
 
 }

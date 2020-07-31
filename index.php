@@ -37,15 +37,15 @@ if(isset($_SESSION['library'])){
 switch(isset($_POST))
 {
 case isset($_POST['bookSearchInput']):
-    $searchInput = new PartialBookSearch($_POST['bookSearchInput']);
+    $searchInput = new PartialBookSearch(htmlspecialchars($_POST['bookSearchInput']));
     break;
 
 case isset($_POST['genre'])&& $_POST['genre']!=='':
-    $searchInput = new Genre($_POST['genre']);
+    $searchInput = new Genre(htmlspecialchars($_POST['genre']));
     break;
 
 case isset($_POST['publisher'])&& $_POST['publisher']!=='':
-    $searchInput = new Publisher($_POST['publisher']);
+    $searchInput = new Publisher(htmlspecialchars($_POST['publisher']));
 
 }
 
@@ -60,9 +60,9 @@ if(isset($searchInput) && $searchInput instanceof PagesOverview){
 /* OUTPUT FROM state FORMAT */
 
 if(isset($_GET['state'])){
-    $book = $library->searchBook($_GET['title']);
+    $book = $library->searchBook(htmlspecialchars($_GET['title']));
     $context= $book->getContext();
-    switch ($_GET['state']){
+    switch (htmlspecialchars($_GET['state'])){
         case 'lended':
             $context->borrow();
             break;
@@ -98,12 +98,12 @@ if(isset($_GET['state'])){
 <body>
 <h1 class="text-center my-2">Library</h1>
 <section id="searchArea" class="container my-4">
-    <form method="post">
+    <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']) ?>">
         <label for="bookSearch" class="mr-2"><strong>Fill in (part of) title:</strong></label>
         <div class="input-group">
             <input type="text" class="form-control" id="bookSearch" name="bookSearchInput"
                    placeholder="type in here..."
-                   value="<?php if (isset($_POST['bookSearchInput'])) echo $_POST['bookSearchInput'] ?>">
+                   value="<?php if (isset($_POST['bookSearchInput'])) echo htmlspecialchars($_POST['bookSearchInput']) ?>">
 
             <div class="input-group-append">
                 <button type="submit" class="btn btn-primary">Search</button>
@@ -111,11 +111,11 @@ if(isset($_GET['state'])){
         </div>
     </form>
     <div class="mt-2 d-flex justify-content-between">
-        <form method="post" class="">
+        <form method="post" class="" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']) ?>">
             <label for="genre" class=""><strong>Pick Genre:</strong></label>
             <div class="input-group">
                 <select name="genre" id="genre">
-                    <option value=""><?php if(isset($_POST['genre'])) echo "chose: {$_POST['genre']}"; ?></option>
+                    <option value=""><?php if(isset($_POST['genre'])) echo "chose: ".htmlspecialchars($_POST['genre']); ?></option>
                     <?php
                     foreach ($library->getGenres() as $genre) {
                         echo " <option value='{$genre->getGenre()}'>{$genre->getGenre()}</option>";
@@ -127,11 +127,11 @@ if(isset($_GET['state'])){
                 </div>
             </div>
         </form>
-        <form method="post">
+        <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']) ?>">
             <label for="genre" class=""><strong>Pick Publisher:</strong></label>
             <div class="input-group">
                 <select name="publisher" id="publisher">
-                    <option value=""><?php if(isset($_POST['publisher'])) echo "chose: {$_POST['publisher']}"; ?></option>
+                    <option value=""><?php if(isset($_POST['publisher'])) echo "chose: ".htmlspecialchars($_POST['publisher']); ?></option>
                     <?php
                     foreach ($library->getPublishers() as $publisher) {
                         echo " <option value='{$publisher->getPublisher()}'>{$publisher->getPublisher()}</option>";

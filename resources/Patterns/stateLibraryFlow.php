@@ -68,7 +68,7 @@ abstract class State
 
     protected $context;
 
-    abstract function validTransactions() : array;
+    abstract public function validTransactions() : array;
 
 
     public function getContext(): Context
@@ -76,7 +76,7 @@ abstract class State
         return $this->context;
     }
 
-    public function setContext(Context $context)
+    public function setContext(Context $context): void
     {
         $this->context = $context;
     }
@@ -100,14 +100,14 @@ abstract class State
         throw new Exception('NOT implemented for this state');
     }
 
-    public function isVisible(){
+    public function isVisible():bool{
         switch (get_class($this)){
-            case 'OpenState':
-            case 'LendedState':
-            case 'OverTimeState':
+            case OpenState::class:
+            case LendedState::class:
+            case OvertimeState::class:
                 return true;
-            case 'LostState':
-            case 'SoldState':
+            case LostState::class:
+            case SoldState::class:
                 return false;
         }
     }
@@ -176,12 +176,12 @@ class OvertimeState extends State {
 class LostState extends State {
     public function validTransactions() : array
     {
-        return [LostState::class];
+        return [__CLASS__];
     }
 }
 class SoldState extends State{
     public function validTransactions() : array
     {
-        return [SoldState::class];
+        return [__CLASS__];
     }
 }
